@@ -28,6 +28,7 @@ interface FrameDef {
   labelColor: string;
   previewSwatch: string;
   divStyle: CSSProperties;
+  labelTop?: string;
   label?: string;
 }
 
@@ -53,7 +54,6 @@ interface CameraDevice {
   label: string;
 }
 
-// ─── Constants ────────────────────────────────────────────────────────────────
 
 const FILTERS: Filter[] = [
   { name: "Normal",    value: "none",      css: "",                                                icon: "○" },
@@ -78,11 +78,11 @@ const FRAMES: FrameDef[] = [
   {
     name: "Classic", value: "classic",
     bgColor: "#0d0d0d", labelColor: "#aaaaaa",
+    labelTop: "✦ PHOTOBOOTH ✦",
     label: "MEMORIES",
     previewSwatch: "background:#0d0d0d",
     divStyle: {
       background: "#0d0d0d",
-      padding: "16px 16px 40px",
       borderRadius: 4,
       boxShadow: "0 8px 32px rgba(0,0,0,0.9)",
     },
@@ -91,11 +91,11 @@ const FRAMES: FrameDef[] = [
     name: "Vintage", value: "vintage",
     bgColor: "#6b4c2e", bgGradient: ["#4a3220", "#c49a6c"],
     labelColor: "#f5e6c8",
-    label: "VINTAGE with pajilbut",
+    labelTop: "⬡ VINTAGE MEMORIES ⬡",
+    label: "VINTAGE WITH PAJILBUT",
     previewSwatch: "background:linear-gradient(135deg,#7c5c3a,#c49a6c)",
     divStyle: {
       background: "linear-gradient(160deg,#4a3220 0%,#c49a6c 50%,#4a3220 100%)",
-      padding: "16px 16px 44px",
       borderRadius: 6,
       boxShadow: "0 6px 28px rgba(0,0,0,0.7)",
     },
@@ -104,11 +104,11 @@ const FRAMES: FrameDef[] = [
     name: "Neon Pink", value: "neonpink",
     bgColor: "#08050d", borderColor: "#ff2d9e", borderPx: 6,
     labelColor: "#ff2d9e",
+    labelTop: "✦ NEON VIBES ✦",
     label: "✦ NEON ✦",
     previewSwatch: "background:#0a0a0a;border:3px solid #ff2d9e;box-shadow:0 0 12px #ff2d9e88",
     divStyle: {
       background: "#08050d",
-      padding: "14px 14px 42px",
       borderRadius: 6,
       border: "2px solid #ff2d9e",
       boxShadow: "0 0 24px #ff2d9e55",
@@ -119,11 +119,11 @@ const FRAMES: FrameDef[] = [
     bgColor: "#1a1400", bgGradient: ["#0d0900", "#2e2400"],
     borderColor: "#D4AF37", borderPx: 5,
     labelColor: "#D4AF37",
+    labelTop: "✦ GOLDEN MOMENTS ✦",
     label: "✦ GOLDEN ✦",
     previewSwatch: "background:linear-gradient(135deg,#7a5f00,#D4AF37,#7a5f00)",
     divStyle: {
       background: "linear-gradient(160deg,#0d0900 0%,#2e2400 50%,#0d0900 100%)",
-      padding: "14px 14px 44px",
       borderRadius: 4,
       border: "2px solid #D4AF37",
       boxShadow: "0 0 20px rgba(212,175,55,0.25)",
@@ -132,11 +132,11 @@ const FRAMES: FrameDef[] = [
   {
     name: "White", value: "white",
     bgColor: "#ffffff", labelColor: "#555555",
-    label: "PHOTO STRIP",
+    labelTop: "PHOTO STRIP",
+    label: "MAKE MEMORIES",
     previewSwatch: "background:#ffffff",
     divStyle: {
       background: "#ffffff",
-      padding: "16px 16px 48px",
       borderRadius: 2,
       boxShadow: "0 4px 40px rgba(0,0,0,0.5)",
     },
@@ -145,11 +145,11 @@ const FRAMES: FrameDef[] = [
     name: "Pastel", value: "pastel",
     bgColor: "#ffe4f0", bgGradient: ["#ffe4f0", "#d4f5e0"],
     labelColor: "#aa5577",
+    labelTop: "✿ SWEET MOMENTS ✿",
     label: "SWEET WITH PAJILBUT",
     previewSwatch: "background:linear-gradient(135deg,#ffd6e0,#c8e6ff,#d4f5c4)",
     divStyle: {
       background: "linear-gradient(160deg,#ffe4f0 0%,#dde8ff 50%,#d4f5e0 100%)",
-      padding: "14px 14px 44px",
       borderRadius: 12,
       boxShadow: "0 4px 32px rgba(0,0,0,0.3)",
     },
@@ -157,13 +157,11 @@ const FRAMES: FrameDef[] = [
   {
     name: "Dark Film", value: "darkfilm",
     bgColor: "#0e0e0e", labelColor: "#666666",
+    labelTop: "◼ FILM ROLL ◼",
     label: "◼ FILM ◼",
     previewSwatch: "background:#111",
     divStyle: {
       background: "#0e0e0e",
-      padding: "4px 4px 40px",
-      borderTop: "22px solid #1a1a1a",
-      borderBottom: "22px solid #1a1a1a",
       boxShadow: "0 8px 40px rgba(0,0,0,0.95)",
     },
   },
@@ -215,6 +213,8 @@ export default function Photobooth() {
   const [showGrid, setShowGrid]     = useState(false);
   const [tab, setTab]               = useState<TabId>("layout");
   const [dragId, setDragId]         = useState<number | null>(null);
+  const [topText, setTopText]       = useState("");
+  const [bottomText, setBottomText] = useState("");
 
   const enumCameras = useCallback(async () => {
     try {
@@ -359,12 +359,13 @@ export default function Photobooth() {
     const cols    = layout.cols;
     const rows    = Math.ceil(photos.length / cols);
 
-    const cellW    = isStrip ? 420 : 540;
-    const cellH    = isStrip ? 280 : 405;
-    const gap      = 10;
-    const padTop   = frame.value === "darkfilm" ? 32 : 22;
-    const padSide  = frame.value === "darkfilm" ? 8  : 22;
-    const padBot   = 56;
+    const cellW    = isStrip ? 380 : 480;
+    const cellH    = isStrip ? 250 : 360;
+    const gap      = 8;
+
+    const padSide   = frame.value === "none" ? 0 : 28;
+    const padTop    = frame.value === "none" ? 0 : frame.value === "darkfilm" ? 36 : 56; 
+    const padBot    = frame.value === "none" ? 0 : 52;
 
     const innerW = cols * cellW + (cols - 1) * gap;
     const innerH = rows * cellH + (rows - 1) * gap;
@@ -427,24 +428,39 @@ export default function Photobooth() {
       img.src = src;
     })));
 
-    const label = frame.label || "✦ PHOTOBOOTH ✦";
-    ctx.fillStyle    = frame.labelColor;
-    ctx.font         = `bold 15px 'Courier New', monospace`;
-    ctx.textAlign    = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(label, totalW / 2, totalH - padBot / 2);
+    if (frame.value !== "none") {
+      const topLabel = topText || frame.labelTop || "✦ PHOTOBOOTH ✦";
+      ctx.fillStyle    = frame.labelColor;
+      ctx.font         = `bold 14px 'Courier New', monospace`;
+      ctx.textAlign    = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(topLabel, totalW / 2, padTop / 2);
+    }
+
+    if (frame.value !== "none") {
+      const botLabel = bottomText || frame.label || "✦ PHOTOBOOTH ✦";
+      ctx.fillStyle    = frame.labelColor;
+      ctx.font         = `bold 14px 'Courier New', monospace`;
+      ctx.textAlign    = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(botLabel, totalW / 2, totalH - padBot / 2);
+    }
 
     const a = document.createElement("a");
     a.download = `photobooth_${Date.now()}.jpg`;
     a.href     = off.toDataURL("image/jpeg", 0.93);
     a.click();
-  }, [photos, layout, frame]);
+  }, [photos, layout, frame, topText, bottomText]);
 
   const videoFilter = [filter.css, `brightness(${brightness}%)`, `contrast(${contrast}%)`]
     .filter(Boolean).join(" ") || "none";
 
   const isStrip      = !!layout.isStrip;
   const isLightFrame = frame.value === "white" || frame.value === "pastel";
+
+  const framePadTop  = frame.value === "none" ? "0" : "7%";
+  const framePadSide = frame.value === "none" ? "0" : "5%";
+  const framePadBot  = frame.value === "none" ? "0" : "7%";
 
   return (
     <div style={{ minHeight: "100vh", background: "#0b0b12", display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 12px 48px", fontFamily: "'Courier New', monospace", color: "#fff" }}>
@@ -514,20 +530,37 @@ export default function Photobooth() {
                 style={{
                   position: "relative",
                   width: "100%",
+                  height: "100%",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "stretch",
-                  justifyContent: "stretch",
                   overflow: "hidden",
                   boxSizing: "border-box",
                   ...frame.divStyle,
-
-                  padding: frame.value === "none" ? 0
+                  padding: frame.value === "none"
+                    ? "0"
                     : frame.value === "darkfilm"
-                      ? "5% 2% 8%"
-                      : "4% 4% 10%",
+                      ? "9% 3% 9%"
+                      : `${framePadTop} ${framePadSide} ${framePadBot}`,
                 }}
               >
+                {frame.value !== "none" && (
+                  <div style={{
+                    textAlign: "center",
+                    fontSize: "clamp(8px,1.8vw,12px)",
+                    letterSpacing: 3,
+                    fontWeight: 700,
+                    color: isLightFrame ? "#777" : frame.labelColor,
+                    flexShrink: 0,
+                    paddingBottom: "2%",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}>
+                    {topText || frame.labelTop || "✦ PHOTOBOOTH ✦"}
+                  </div>
+                )}
+
                 <div style={{
                   display: "grid",
                   gridTemplateColumns: `repeat(${layout.cols}, 1fr)`,
@@ -547,18 +580,33 @@ export default function Photobooth() {
                   ))}
                 </div>
 
-                {frame.label && (
+                {/* ── BOTTOM LABEL ── */}
+                {frame.value !== "none" && (
                   <div style={{
                     textAlign: "center",
-                    fontSize: "clamp(9px,2vw,13px)",
+                    fontSize: "clamp(8px,1.8vw,12px)",
                     letterSpacing: 3,
                     fontWeight: 700,
-                    paddingTop: "3%",
+                    paddingTop: "2%",
                     color: isLightFrame ? "#666" : frame.labelColor,
                     flexShrink: 0,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
                   }}>
-                    {frame.label}
+                    {bottomText || frame.label || "✦ PHOTOBOOTH ✦"}
                   </div>
+                )}
+
+                {frame.value === "darkfilm" && (
+                  <>
+                    <div style={{ position: "absolute", left: 4, top: "9%", bottom: "9%", display: "flex", flexDirection: "column", justifyContent: "space-around", pointerEvents: "none" }}>
+                      {Array.from({length: 6}).map((_, i) => <div key={i} style={{ width: 8, height: 8, borderRadius: "50%", background: "#2e2e2e" }} />)}
+                    </div>
+                    <div style={{ position: "absolute", right: 4, top: "9%", bottom: "9%", display: "flex", flexDirection: "column", justifyContent: "space-around", pointerEvents: "none" }}>
+                      {Array.from({length: 6}).map((_, i) => <div key={i} style={{ width: 8, height: 8, borderRadius: "50%", background: "#2e2e2e" }} />)}
+                    </div>
+                  </>
                 )}
 
                 {stickers.map((st) => (
@@ -663,6 +711,7 @@ export default function Photobooth() {
             )}
           </div>
 
+          {/* Phase indicator */}
           <div style={{ display: "flex", gap: 8, justifyContent: "center", alignItems: "center" }}>
             {(["setup","shooting","preview","result"] as Phase[]).map((p, i) => (
               <div key={p} style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -694,6 +743,7 @@ export default function Photobooth() {
           )}
         </div>
 
+        {/* ── RIGHT PANEL ── */}
         <div style={{ flex: "0 0 244px", display: "flex", flexDirection: "column" }}>
           {/* Tabs */}
           <div style={{ display: "flex", borderRadius: "10px 10px 0 0", overflow: "hidden", border: "1px solid rgba(255,255,255,0.07)", borderBottom: "none" }}>
@@ -768,7 +818,7 @@ export default function Photobooth() {
             {tab === "frame" && (
               <div>
                 <SectionLabel>Bingkai Foto</SectionLabel>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 14 }}>
                   {FRAMES.map((fr) => (
                     <button key={fr.value} onClick={() => setFrame(fr)} style={{
                       padding: "10px 6px", borderRadius: 8,
@@ -784,6 +834,56 @@ export default function Photobooth() {
                     </button>
                   ))}
                 </div>
+
+                {frame.value !== "none" && (
+                  <>
+                    <SectionLabel style={{ marginTop: 4 }}>Teks Kustom</SectionLabel>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      <div>
+                        <p style={{ fontSize: 9, color: "#444", margin: "0 0 4px", letterSpacing: 1 }}>TEKS ATAS</p>
+                        <input
+                          type="text"
+                          value={topText}
+                          onChange={(e) => setTopText(e.target.value)}
+                          placeholder={frame.labelTop || "✦ PHOTOBOOTH ✦"}
+                          maxLength={28}
+                          style={{
+                            width: "100%", boxSizing: "border-box",
+                            background: "rgba(255,255,255,0.04)",
+                            border: "1px solid rgba(255,255,255,0.1)",
+                            borderRadius: 6, padding: "6px 10px",
+                            color: "#ccc", fontSize: 11, fontFamily: "inherit",
+                            outline: "none",
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <p style={{ fontSize: 9, color: "#444", margin: "0 0 4px", letterSpacing: 1 }}>TEKS BAWAH</p>
+                        <input
+                          type="text"
+                          value={bottomText}
+                          onChange={(e) => setBottomText(e.target.value)}
+                          placeholder={frame.label || "MEMORIES"}
+                          maxLength={28}
+                          style={{
+                            width: "100%", boxSizing: "border-box",
+                            background: "rgba(255,255,255,0.04)",
+                            border: "1px solid rgba(255,255,255,0.1)",
+                            borderRadius: 6, padding: "6px 10px",
+                            color: "#ccc", fontSize: 11, fontFamily: "inherit",
+                            outline: "none",
+                          }}
+                        />
+                      </div>
+                      <button
+                        onClick={() => { setTopText(""); setBottomText(""); }}
+                        style={{ ...secondaryBtn, fontSize: 10, padding: "6px 10px" }}
+                      >
+                        Reset ke Default
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             )}
 
@@ -835,6 +935,8 @@ export default function Photobooth() {
         * { box-sizing: border-box; }
         ::-webkit-scrollbar { width: 3px; }
         ::-webkit-scrollbar-thumb { background: #222; border-radius: 2px; }
+        input::placeholder { color: #333; }
+        input:focus { border-color: rgba(255,45,158,0.4) !important; }
       `}</style>
     </div>
   );
